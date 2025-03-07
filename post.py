@@ -1,0 +1,44 @@
+import os
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+# Fetch credentials from GitHub Secrets
+linkedin_username = os.getenv("LINKEDIN_USERNAME")
+linkedin_password = os.getenv("LINKEDIN_PASSWORD")
+
+# Initialize WebDriver
+driver = webdriver.Chrome()
+driver.get("https://www.linkedin.com/login")
+
+# Login
+username = driver.find_element(By.ID, "username")
+password = driver.find_element(By.ID, "password")
+username.send_keys(linkedin_username)
+password.send_keys(linkedin_password)
+password.send_keys(Keys.RETURN)
+
+# Wait for feed page to load
+WebDriverWait(driver, 10).until(EC.url_contains("feed"))
+
+# Navigate to post box
+driver.get("https://www.linkedin.com/feed/")
+post_box = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.XPATH, "//span[strong[contains(text(), 'Start a post')]]"))
+)
+post_box.click()
+
+# Write and post
+text_area = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "ql-editor")))
+text_area.send_keys("Automated LinkedIn Post using Selenium!")
+
+# Click Post
+post_button = WebDriverWait(driver, 10).until(
+    EC.element_to_be_clickable((By.CLASS_NAME, "share-actions__primary-action"))
+)
+post_button.click()
+
+# Close browser
+driver.quit()
