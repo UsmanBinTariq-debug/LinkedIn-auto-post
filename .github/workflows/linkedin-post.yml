@@ -1,8 +1,8 @@
 name: LinkedIn Auto Post
 
 on:
-  schedule:
-    - cron: '0 8 * * *'  # Runs every day at 8 AM UTC
+  repository_dispatch:
+    types: [make_trigger]  # Triggered by Make.com
   workflow_dispatch:  # Allows manual execution
 
 jobs:
