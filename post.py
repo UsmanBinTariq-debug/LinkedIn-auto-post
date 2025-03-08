@@ -1,7 +1,6 @@
 import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,43 +12,45 @@ linkedin_username = os.getenv("LINKEDIN_USERNAME")
 linkedin_password = os.getenv("LINKEDIN_PASSWORD")
 
 # Set Chrome options
-chrome_options = Options()
-chrome_options.add_argument("--headless")  # Run in headless mode (no UI)
-chrome_options.add_argument("--disable-gpu")  
-chrome_options.add_argument("--no-sandbox")  
-chrome_options.add_argument("--disable-dev-shm-usage")  
-chrome_options.add_argument("--user-data-dir=/tmp/chrome-user-data")  # Unique user-data-dir
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("--headless")  # Run Chrome in headless mode
+chrome_options.add_argument("--no-sandbox")  # Bypass OS security restrictions
+chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resources in CI/CD
+chrome_options.add_argument("--user-data-dir=/tmp/chrome-user-data")  # Set custom user data directory
 
-# Initialize WebDriver with options
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
-driver.get("https://www.linkedin.com/login")
+# Initialize WebDriver
+service = Service(ChromeDriverManager().install())
+driver = webdriver.Chrome(service=service, options=chrome_options)
 
-# Login
-username = driver.find_element(By.ID, "username")
-password = driver.find_element(By.ID, "password")
-username.send_keys(linkedin_username)
-password.send_keys(linkedin_password)
-password.send_keys(Keys.RETURN)
+try:
+    driver.get("https://www.linkedin.com/login")
 
-# Wait for feed page to load
-WebDriverWait(driver, 10).until(EC.url_contains("feed"))
+    # Login
+    username = driver.find_element(By.ID, "username")
+    password = driver.find_element(By.ID, "password")
+    username.send_keys(linkedin_username)
+    password.send_keys(linkedin_password)
+    password.send_keys(Keys.RETURN)
 
-# Navigate to post box
-driver.get("https://www.linkedin.com/feed/")
-post_box = WebDriverWait(driver, 10).until(
-    EC.element_to_be_clickable((By.XPATH, "//span[strong[contains(text(), 'Start a post')]]"))
-)
-post_box.click()
+    # Wait for feed page to load
+    WebDriverWait(driver, 10).until(EC.url_contains("feed"))
 
-# Write and post
-text_area = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "ql-editor")))
-text_area.send_keys("Automated LinkedIn Post using Selenium!")
+    # Navigate to post box
+    driver.get("https://www.linkedin.com/feed/")
+    post_box = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'share-box__open')]"))
+    )
+    post_box.click()
 
-# Click Post
-post_button = WebDriverWait(driver, 10).until(
-    EC.element_to_be_clickable((By.CLASS_NAME, "share-actions__primary-action"))
-)
-post_button.click()
+    # Write and post
+    text_area = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "ql-editor")))
+    text_area.send_keys("Automated LinkedIn Post using Selenium!")
 
-# Close browser
-driver.quit()
+    # Click Post
+    post_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'share-actions__primary-action')]"))
+    )
+    post_button.click()
+
+finally:
+    driver.quit()
