@@ -1,4 +1,5 @@
 import os
+import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -7,33 +8,45 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-# Fetch credentials from GitHub Secrets
+# Fetch credentials
 linkedin_username = os.getenv("LINKEDIN_USERNAME")
 linkedin_password = os.getenv("LINKEDIN_PASSWORD")
 
-# Set Chrome options
+# Chrome options
 chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--headless")  # Run Chrome in headless mode
-chrome_options.add_argument("--no-sandbox")  # Bypass OS security restrictions
-chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resources in CI/CD
-chrome_options.add_argument("--user-data-dir=/tmp/chrome-user-data")  # Set custom user data directory
+chrome_options.add_argument("--headless")  # Run without UI
+chrome_options.add_argument("--no-sandbox")  
+chrome_options.add_argument("--disable-dev-shm-usage")  
+chrome_options.add_argument("--user-data-dir=/tmp/chrome-user-data")  
+chrome_options.add_argument("start-maximized")  
+chrome_options.add_argument("disable-infobars")  
+chrome_options.add_argument("--disable-blink-features=AutomationControlled")  # Avoid detection
+chrome_options.add_argument(f"user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
 
-# Initialize WebDriver
+# Start WebDriver
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
 try:
+    print("Opening LinkedIn login page...")
     driver.get("https://www.linkedin.com/login")
+    
+    # Wait for username field
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "username")))
 
-    # Login
-    username = driver.find_element(By.ID, "username")
-    password = driver.find_element(By.ID, "password")
-    username.send_keys(linkedin_username)
-    password.send_keys(linkedin_password)
-    password.send_keys(Keys.RETURN)
+    print("Entering credentials...")
+    driver.find_element(By.ID, "username").send_keys(linkedin_username)
+    driver.find_element(By.ID, "password").send_keys(linkedin_password)
+    
+    # Click login button
+    driver.find_element(By.XPATH, "//button[@type='submit']").click()
+    
+    # Allow time for potential security checks
+    time.sleep(5)  # Extra wait in case of CAPTCHA
 
-    # Wait for feed page to load
-    WebDriverWait(driver, 10).until(EC.url_contains("feed"))
+    # Confirm login success
+    WebDriverWait(driver, 15).until(EC.url_contains("feed"))
+    print("Login successful, proceeding to post.")
 
     # Navigate to post box
     driver.get("https://www.linkedin.com/feed/")
@@ -42,7 +55,7 @@ try:
     )
     post_box.click()
 
-    # Write and post
+    # Write post
     text_area = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "ql-editor")))
     text_area.send_keys("Automated LinkedIn Post using Selenium!")
 
@@ -51,6 +64,8 @@ try:
         EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'share-actions__primary-action')]"))
     )
     post_button.click()
+
+    print("Post successful!")
 
 finally:
     driver.quit()
