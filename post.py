@@ -17,7 +17,6 @@ linkedin_password = os.getenv("LINKEDIN_PASSWORD")
 chrome_options = Options()
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
-chrome_options.add_argument("--user-data-dir=/tmp/chrome-user-data")  
 chrome_options.add_argument("--start-maximized")
 chrome_options.add_argument("--disable-blink-features=AutomationControlled")  # Prevent detection
 chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)")  
