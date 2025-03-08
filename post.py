@@ -1,24 +1,27 @@
 import os
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 
 # Fetch credentials from GitHub Secrets
 linkedin_username = os.getenv("LINKEDIN_USERNAME")
 linkedin_password = os.getenv("LINKEDIN_PASSWORD")
 
-# Set up Chrome options
-options = Options()
-options.add_argument("--headless=new")  # Run in headless mode
-options.add_argument("--no-sandbox")  # Required for GitHub Actions
-options.add_argument("--disable-dev-shm-usage")  # Prevent crashes
-options.add_argument("--user-data-dir=/tmp/chrome-profile")  # Use a temp profile
+# Set Chrome options
+chrome_options = Options()
+chrome_options.add_argument("--headless")  # Run in headless mode (no UI)
+chrome_options.add_argument("--disable-gpu")  
+chrome_options.add_argument("--no-sandbox")  
+chrome_options.add_argument("--disable-dev-shm-usage")  
+chrome_options.add_argument("--user-data-dir=/tmp/chrome-user-data")  # Unique user-data-dir
 
-# Initialize WebDriver
-driver = webdriver.Chrome(options=options)
+# Initialize WebDriver with options
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 driver.get("https://www.linkedin.com/login")
 
 # Login
