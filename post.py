@@ -1,5 +1,6 @@
 import os
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -9,8 +10,15 @@ from selenium.webdriver.support import expected_conditions as EC
 linkedin_username = os.getenv("LINKEDIN_USERNAME")
 linkedin_password = os.getenv("LINKEDIN_PASSWORD")
 
+# Set up Chrome options
+options = Options()
+options.add_argument("--headless=new")  # Run in headless mode
+options.add_argument("--no-sandbox")  # Required for GitHub Actions
+options.add_argument("--disable-dev-shm-usage")  # Prevent crashes
+options.add_argument("--user-data-dir=/tmp/chrome-profile")  # Use a temp profile
+
 # Initialize WebDriver
-driver = webdriver.Chrome()
+driver = webdriver.Chrome(options=options)
 driver.get("https://www.linkedin.com/login")
 
 # Login
