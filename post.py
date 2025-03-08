@@ -1,5 +1,6 @@
 import os
 import time
+import uuid  # Add this import for generating unique directories
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -17,6 +18,11 @@ linkedin_password = os.getenv("LINKEDIN_PASSWORD")
 chrome_options = Options()
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
+
+# Generate a unique user data directory
+unique_dir = f"/tmp/chrome-user-data-{uuid.uuid4()}"
+chrome_options.add_argument(f"--user-data-dir={unique_dir}")
+
 chrome_options.add_argument("--start-maximized")
 chrome_options.add_argument("--disable-blink-features=AutomationControlled")  # Prevent detection
 chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)")  
